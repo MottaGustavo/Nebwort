@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NebWort — Como jogar</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header class="faixa-topo">
+    <div class="marca"><span class="ponto"></span> NebWort</div>
+    <div class="info-usuario">
+      <span id="saudacaoUsuario"></span>
+    </div>
+  </header>
+
+  <main class="container-principal">
+    <div class="cartao">
+      <span class="eyebrow">Como jogar</span>
+      <h1>Conecte palavras por significado</h1>
+      <p>
+        A cada rodada, uma palavra é sorteada. Você escreve outras palavras
+        que tenham relação de significado com ela — não vale só escrever
+        qualquer coisa grande, sua resposta precisa fazer sentido.
+      </p>
+
+      <ul class="lista-regras">
+        <li>
+          <span class="marcador-regra">1</span>
+          <span>Digite suas respostas separadas por vírgula. O campo formata
+          sozinho: espaço vira vírgula, e caracteres inválidos são removidos.</span>
+        </li>
+        <li>
+          <span class="marcador-regra">2</span>
+          <span>Cada palavra é comparada com a palavra sorteada usando um
+          modelo de <strong>relação semântica</strong> (embeddings), rodando
+          direto no seu navegador. Só quem passa nesse teste pontua.</span>
+        </li>
+        <li>
+          <span class="marcador-regra">3</span>
+          <span>Palavras aprovadas com 5 letras ou mais valem <strong>10 pontos</strong>;
+          com menos de 5 letras valem <strong>2 pontos</strong>. Palavras sem
+          relação semântica suficiente valem 0 e aparecem marcadas em vermelho.</span>
+        </li>
+        <li>
+          <span class="marcador-regra">4</span>
+          <span>Escolha a dificuldade na próxima tela: Fácil (2 palavras por
+          rodada), Médio (4) ou Difícil (6).</span>
+        </li>
+      </ul>
+
+      <div class="linha-botoes">
+        <a href="pagina3.html" class="botao botao-primario">Próximo</a>
+      </div>
+    </div>
+  </main>
+
+  <script src="script.js"></script>
+  <script>
+    iniciarBoasVindas();
+  </script>
+</body>
+</html>

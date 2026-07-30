@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NebWort — Fácil · Fase 3 · Natureza</title>
+  <link rel="stylesheet" href="../../style.css" />
+</head>
+<body>
+
+  <header class="faixa-topo">
+    <div class="marca"><span class="ponto"></span> NebWort</div>
+    <div class="info-usuario">
+      <span class="pontos-pill"><span id="pontosAtuais">0</span> pts</span>
+    </div>
+  </header>
+
+  <main class="container-principal">
+    <div class="cartao cartao-largo">
+      <span class="eyebrow">Fácil · Fase 3 de 3 · Natureza</span>
+      <h1>Relacione com a palavra sorteada</h1>
+
+      <div class="arena">
+        <div class="nucleo-palavra">
+          <div class="anel"></div>
+          <span id="palavraSorteada">...</span>
+        </div>
+
+        <div class="dica-quantidade">Digite 2 palavra(s), separadas por vírgula</div>
+
+        <div class="estado-modelo" id="estadoModelo">
+          <span class="espiral"></span>
+          <span id="textoEstadoModelo">Carregando modelo semântico...</span>
+        </div>
+
+        <div class="mensagem-aviso oculto" id="avisoFallback">
+          O modelo semântico não pôde ser carregado (sem internet no primeiro uso?).
+          O jogo continua normalmente, pontuando apenas pelo tamanho das palavras.
+        </div>
+
+        <form id="formResposta" class="campo-resposta" novalidate>
+          <label for="campoResposta">Suas respostas</label>
+          <input type="text" id="campoResposta" placeholder="palavra1, palavra2" autocomplete="off" />
+          <div class="linha-botoes">
+            <button type="submit" id="botaoEnviar" class="botao botao-primario">Enviar</button>
+            
+          </div>
+        </form>
+
+        <div class="constelacao-respostas" id="constelacaoRespostas"></div>
+
+        <div class="resumo-rodada oculto" id="resumoRodada"></div>
+      </div>
+
+      <div class="linha-botoes" style="margin-top: 28px; border-top: 1px solid var(--border); padding-top: 20px;">
+        <a href="../../pagina3.html" class="botao botao-secundario">Escolher dificuldade</a>
+        <a href="../../ranking.html" class="botao botao-secundario">Ver ranking</a>
+      </div>
+    </div>
+  </main>
+
+  <script>const CAMINHO_RAIZ = "../../";</script>
+  <script src="../../script.js"></script>
+  <script type="module">
+    import { carregarModelo, calcularSimilaridade, emModoFallback } from "../../semantica.js";
+
+    const PALAVRAS_DA_FASE = ["montanha", "rio", "floresta", "deserto", "oceano", "vulcao", "cachoeira", "ilha"];
+    const QUANTIDADE_ESPERADA = 2;
+    const PROXIMA_FASE_HREF = "";
+
+    const nickname = exigirLogin();
+    if (nickname) {
+      const elPalavra = document.getElementById("palavraSorteada");
+      const elPontosPill = document.getElementById("pontosAtuais");
+      const elEstadoModelo = document.getElementById("estadoModelo");
+      const elTextoEstadoModelo = document.getElementById("textoEstadoModelo");
+      const elAvisoFallback = document.getElementById("avisoFallback");
+      const campoResposta = document.getElementById("campoResposta");
+      const formResposta = document.getElementById("formResposta");
+      const botaoEnviar = document.getElementById("botaoEnviar");
+      const botaoProxima = document.getElementById("botaoProxima");
+      const constelacao = document.getElementById("constelacaoRespostas");
+      const resumoRodada = document.getElementById("resumoRodada");
+
+      if (elPontosPill) elPontosPill.textContent = obterPontosUsuario(nickname);
+
+      const indiceSorteado = sortearIndice(PALAVRAS_DA_FASE);
+      const palavraSorteada = PALAVRAS_DA_FASE[indiceSorteado];
+      if (elPalavra) elPalavra.textContent = palavraSorteada;
+
+      anexarFormatacaoAutomatica(campoResposta);
+
+      botaoEnviar.disabled = true;
+
+      carregarModelo().then(() => {
+        if (emModoFallback()) {
+          if (elEstadoModelo) elEstadoModelo.classList.add("erro");
+          if (elTextoEstadoModelo) elTextoEstadoModelo.textContent = "Modelo semântico indisponível — pontuando só pelo tamanho";
+          if (elAvisoFallback) elAvisoFallback.classList.remove("oculto");
+        } else {
+          if (elEstadoModelo) elEstadoModelo.classList.add("pronto");
+          if (elTextoEstadoModelo) elTextoEstadoModelo.textContent = "Modelo semântico pronto";
+        }
+        botaoEnviar.disabled = false;
+      });
+
+      formResposta.addEventListener("submit", async (evento) => {
+        evento.preventDefault();
+        const palavras = extrairPalavrasDigitadas(campoResposta.value).slice(0, QUANTIDADE_ESPERADA);
+        if (palavras.length === 0) return;
+
+        botaoEnviar.disabled = true;
+        botaoEnviar.textContent = "Validando...";
+        campoResposta.disabled = true;
+
+        let totalPontos = 0;
+        constelacao.innerHTML = "";
+
+        for (const palavra of palavras) {
+          const similaridade = await calcularSimilaridade(palavra, palavraSorteada);
+          const passou = similaridade === null ? true : similaridade >= LIMIAR_SIMILARIDADE;
+          const pontos = passou ? calcularPontosPalavra(palavra) : 0;
+          totalPontos += pontos;
+
+          const no = document.createElement("span");
+          no.className = "no-resposta " + (passou ? "aprovado" : "reprovado");
+          const rotuloSimilaridade = similaridade === null ? "s/ checagem" : Math.round(similaridade * 100) + "%";
+          no.innerHTML = escaparHtml(palavra) + ' <span class="similaridade">' + rotuloSimilaridade + '</span> <span class="pontos-ganhos">+' + pontos + '</span>';
+          constelacao.appendChild(no);
+        }
+
+        adicionarPontos(totalPontos);
+        if (elPontosPill) elPontosPill.textContent = obterPontosUsuario(nickname);
+
+        if (resumoRodada) {
+          resumoRodada.classList.remove("oculto");
+          resumoRodada.innerHTML = "Você ganhou <strong>" + totalPontos + "</strong> ponto(s) nesta rodada.";
+        }
+
+        botaoEnviar.textContent = "Enviar";
+        if (botaoProxima) {
+          botaoProxima.disabled = false;
+          botaoProxima.addEventListener("click", () => {
+            window.location.href = PROXIMA_FASE_HREF;
+          });
+        }
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NebWort — Escolher dificuldade</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header class="faixa-topo">
+    <div class="marca"><span class="ponto"></span> NebWort</div>
+    <div class="info-usuario">
+      <span class="pontos-pill"><span id="pontosAtuais">0</span> pts</span>
+    </div>
+  </header>
+
+  <main class="container-principal">
+    <div class="cartao">
+      <span class="eyebrow">Rodada</span>
+      <h1>Escolha a dificuldade</h1>
+      <p>Quanto maior a dificuldade, mais palavras você precisa relacionar por rodada.</p>
+
+      <label for="seletorDificuldade">Dificuldade</label>
+      <select id="seletorDificuldade">
+        <option value="">Selecione...</option>
+        <option value="facil">Fácil — 2 palavras</option>
+        <option value="medio">Médio — 4 palavras</option>
+        <option value="dificil">Difícil — 6 palavras</option>
+      </select>
+
+      <div class="linha-botoes">
+        <a href="fases/fasesFaceis/FacilFase1.html" id="botaoJogarFacil" class="botao botao-primario oculto">Jogar — Fácil</a>
+        <a href="fases/fasesMedias/MedioFase1.html" id="botaoJogarMedio" class="botao botao-primario oculto">Jogar — Médio</a>
+        <a href="fases/fasesDificeis/DificilFase1.html" id="botaoJogarDificil" class="botao botao-primario oculto">Jogar — Difícil</a>
+      </div>
+
+      <div class="linha-botoes" style="margin-top: 22px; border-top: 1px solid var(--border); padding-top: 20px;">
+        <a href="ranking.html" class="botao botao-secundario">Ver ranking</a>
+      </div>
+    </div>
+  </main>
+
+  <script src="script.js"></script>
+  <script>
+    iniciarEscolhaDificuldade();
+  </script>
+</body>
+</html>

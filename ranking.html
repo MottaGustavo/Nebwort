@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NebWort — Ranking</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header class="faixa-topo">
+    <div class="marca"><span class="ponto"></span> NebWort</div>
+    <div class="info-usuario">
+      <button id="botaoSair" class="botao botao-perigo">Sair</button>
+    </div>
+  </header>
+
+  <main class="container-principal">
+    <div class="cartao cartao-largo">
+      <span class="eyebrow">Placar</span>
+      <h1>Ranking</h1>
+      <p>Os jogadores com mais pontos aparecem no topo. Sua linha está destacada.</p>
+
+      <table class="tabela-ranking">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Nickname</th>
+            <th style="text-align:right;">Pontos</th>
+          </tr>
+        </thead>
+        <tbody id="corpoTabelaRanking"></tbody>
+      </table>
+
+      <div class="linha-botoes" style="margin-top: 24px;">
+        <a href="pagina3.html" class="botao botao-secundario">Voltar</a>
+      </div>
+    </div>
+  </main>
+
+  <script src="script.js"></script>
+  <script>
+    iniciarRanking();
+  </script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NebWort — Entrar</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header class="faixa-topo">
+    <div class="marca"><span class="ponto"></span> NebWort</div>
+  </header>
+
+  <main class="container-principal">
+    <p style="text-align:center; color: var(--text-faint); font-family: var(--font-mono); font-size: 0.85rem;">
+      Entre com seu nickname para começar a jogar.
+    </p>
+  </main>
+
+  <dialog id="modalLogin">
+    <div class="cartao">
+      <span class="eyebrow">Acesso</span>
+      <h1>Entrar no NebWort</h1>
+      <p>Se o nickname ainda não existir, criamos uma conta nova automaticamente.</p>
+
+      <form id="formularioLogin" novalidate>
+        <label for="campoNickname">Nickname</label>
+        <input type="text" id="campoNickname" name="nickname" autocomplete="username" required />
+
+        <label for="campoSenha">Senha</label>
+        <input type="password" id="campoSenha" name="senha" autocomplete="current-password" required />
+
+        <div class="mensagem-erro" id="mensagemErroLogin"></div>
+
+        <button type="submit" class="botao-primario" style="width:100%;">Entrar</button>
+      </form>
+    </div>
+  </dialog>
+
+  <script src="script.js"></script>
+  <script>
+    iniciarLogin();
+  </script>
+</body>
+</html>
