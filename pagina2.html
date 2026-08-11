@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NebWort — Como jogar</title>
+  <title>NebWort — Início</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -16,42 +16,62 @@
   </header>
 
   <main class="container-principal">
-    <div class="cartao">
-      <span class="eyebrow">Como jogar</span>
-      <h1>Conecte palavras por significado</h1>
-      <p>
-        A cada rodada, uma palavra é sorteada. Você escreve outras palavras
-        que tenham relação de significado com ela — não vale só escrever
-        qualquer coisa grande, sua resposta precisa fazer sentido.
+    <div class="cartao cartao-largo">
+      <span class="eyebrow">Seu perfil</span>
+      <h1>Pronto para conectar palavras?</h1>
+
+      <div class="perfil-resumo">
+        <div class="perfil-bloco">
+          <span class="perfil-label">Título</span>
+          <strong id="tituloAtual">—</strong>
+        </div>
+        <div class="perfil-bloco">
+          <span class="perfil-label">Pontos</span>
+          <strong id="pontosPerfil">0</strong>
+        </div>
+        <div class="perfil-bloco perfil-bloco-largo">
+          <span class="perfil-label">Progresso</span>
+          <span id="proximoTitulo" class="texto-dim">—</span>
+        </div>
+      </div>
+
+      <p style="margin-top: 8px;">
+        A cada rodada uma palavra é sorteada. Você responde com palavras relacionadas
+        por significado. O modelo semântico valida no seu navegador.
       </p>
 
       <ul class="lista-regras">
         <li>
           <span class="marcador-regra">1</span>
-          <span>Digite suas respostas separadas por vírgula. O campo formata
-          sozinho: espaço vira vírgula, e caracteres inválidos são removidos.</span>
+          <span>Separe as respostas por vírgula (espaço vira vírgula automaticamente).</span>
         </li>
         <li>
           <span class="marcador-regra">2</span>
-          <span>Cada palavra é comparada com a palavra sorteada usando um
-          modelo de <strong>relação semântica</strong> (embeddings), rodando
-          direto no seu navegador. Só quem passa nesse teste pontua.</span>
+          <span>≥ 5 letras = <strong>10 pts</strong> · menos = <strong>2 pts</strong> · sem relação = 0.</span>
         </li>
         <li>
           <span class="marcador-regra">3</span>
-          <span>Palavras aprovadas com 5 letras ou mais valem <strong>10 pontos</strong>;
-          com menos de 5 letras valem <strong>2 pontos</strong>. Palavras sem
-          relação semântica suficiente valem 0 e aparecem marcadas em vermelho.</span>
-        </li>
-        <li>
-          <span class="marcador-regra">4</span>
-          <span>Escolha a dificuldade na próxima tela: Fácil (2 palavras por
-          rodada), Médio (4) ou Difícil (6).</span>
+          <span>Suba de título conforme pontua. Os títulos aparecem no ranking.</span>
         </li>
       </ul>
 
-      <div class="linha-botoes">
-        <a href="pagina3.html" class="botao botao-primario">Próximo</a>
+      <h2 style="font-size: 1.15rem; margin: 28px 0 12px;">Escolha o modo</h2>
+
+      <div class="modos-grid">
+        <a href="pagina3.html" id="botaoModoRapido" class="modo-card">
+          <span class="modo-eyebrow">Partida solta</span>
+          <strong>Jogo rápido</strong>
+          <span class="modo-desc">Escolha a dificuldade e jogue temas aleatórios. Ideal para uma rodada rápida.</span>
+        </a>
+        <a href="historia.html" id="botaoModoHistoria" class="modo-card">
+          <span class="modo-eyebrow">Trilha</span>
+          <strong>Modo história</strong>
+          <span class="modo-desc">Capítulos em sequência por tema. Foque em um assunto de cada vez e avance a trilha.</span>
+        </a>
+      </div>
+
+      <div class="linha-botoes" style="margin-top: 22px; border-top: 1px solid var(--border); padding-top: 20px;">
+        <a href="ranking.html" class="botao botao-secundario">Ver ranking</a>
       </div>
     </div>
   </main>
