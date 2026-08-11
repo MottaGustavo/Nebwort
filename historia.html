@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NebWort — Modo história</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header class="faixa-topo">
+    <div class="marca"><span class="ponto"></span> NebWort</div>
+    <div class="info-usuario">
+      <span class="titulo-pill" id="tituloPill">—</span>
+      <span class="pontos-pill"><span id="pontosAtuais">0</span> pts</span>
+    </div>
+  </header>
+
+  <main class="container-principal">
+    <div class="cartao cartao-largo">
+      <span class="eyebrow">Trilha</span>
+      <h1>Modo história</h1>
+      <p>
+        Avance capítulo a capítulo. Cada um foca em um tema.
+        Conclua o atual para liberar o próximo.
+      </p>
+
+      <div class="historia-progresso">
+        Progresso: <strong id="progressoHistoria">0 / 9 capítulos</strong>
+      </div>
+
+      <div id="historiaCompleta" class="mensagem-aviso oculto" style="margin-top: 12px;">
+        Você concluiu toda a trilha. Pode rejogar qualquer capítulo ou testar o Jogo rápido.
+      </div>
+
+      <div id="listaCapitulos" class="lista-capitulos"></div>
+
+      <div class="linha-botoes" style="margin-top: 24px; border-top: 1px solid var(--border); padding-top: 20px;">
+        <a href="pagina2.html" class="botao botao-secundario">Voltar</a>
+        <a href="ranking.html" class="botao botao-secundario">Ranking</a>
+      </div>
+    </div>
+  </main>
+
+  <script src="script.js"></script>
+  <script>
+    iniciarHistoria();
+  </script>
+</body>
+</html>
