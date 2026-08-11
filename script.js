@@ -1,17 +1,63 @@
 /* ===================================================================
-   NebWort / Semanti — script.js
-   Lógica compartilhada: contas, login, pontos, navegação e helpers de fase.
-   Validação semântica mora em semantica.js.
+   NebWort — script.js
+   Contas, login, pontos, títulos, modos (rápido / história) e helpers.
    =================================================================== */
 
 const RAIZ = (typeof CAMINHO_RAIZ !== "undefined") ? CAMINHO_RAIZ : "";
 
 const CHAVE_CONTAS = "nebwortContas";
 const CHAVE_USUARIO_ATUAL = "nebwortUsuarioAtual";
+const CHAVE_MODO = "nebwortModo"; // "rapido" | "historia"
+const CHAVE_CAPITULO = "nebwortCapitulo";
 
-/* Limiar legado (as fases novas usam avaliarRelacao de semantica.js).
-   Mantido em 0.30 para qualquer código antigo que ainda consulte esta constante. */
 const LIMIAR_SIMILARIDADE = 0.30;
+
+/* ------------------------------------------------------------------ */
+/* Títulos por pontuação                                              */
+/* ------------------------------------------------------------------ */
+
+const TITULOS = [
+  { min: 0,   id: "aprendiz",     nome: "Aprendiz",           emoji: "🌱" },
+  { min: 50,  id: "conector",     nome: "Conector",           emoji: "🔗" },
+  { min: 150, id: "semantico",    nome: "Semântico",          emoji: "✨" },
+  { min: 350, id: "constelacao",  nome: "Constelação",        emoji: "🌌" },
+  { min: 700, id: "mestre",       nome: "Mestre das Palavras", emoji: "👑" },
+];
+
+function obterTituloPorPontos(pontos) {
+  let atual = TITULOS[0];
+  for (const t of TITULOS) {
+    if (pontos >= t.min) atual = t;
+  }
+  return atual;
+}
+
+function obterProximoTitulo(pontos) {
+  for (const t of TITULOS) {
+    if (pontos < t.min) return t;
+  }
+  return null;
+}
+
+/* ------------------------------------------------------------------ */
+/* Capítulos do modo história                                         */
+/* ------------------------------------------------------------------ */
+
+const CAPITULOS_HISTORIA = [
+  { id: 0, nome: "Animais",      tema: "Quem vive e respira",     href: "fases/fasesFaceis/FacilFase1.html",   qtd: 2 },
+  { id: 1, nome: "Comida",       tema: "Sabores do dia a dia",    href: "fases/fasesFaceis/FacilFase2.html",   qtd: 2 },
+  { id: 2, nome: "Natureza",     tema: "O mundo lá fora",         href: "fases/fasesFaceis/FacilFase3.html",   qtd: 2 },
+  { id: 3, nome: "Profissões",   tema: "O que as pessoas fazem",  href: "fases/fasesMedias/MedioFase1.html",   qtd: 4 },
+  { id: 4, nome: "Esportes",     tema: "Corpo em movimento",      href: "fases/fasesMedias/MedioFase2.html",   qtd: 4 },
+  { id: 5, nome: "Tecnologia",   tema: "Máquinas e redes",        href: "fases/fasesMedias/MedioFase3.html",   qtd: 4 },
+  { id: 6, nome: "Emoções",      tema: "O que sentimos",          href: "fases/fasesDificeis/DificilFase1.html", qtd: 6 },
+  { id: 7, nome: "Espaço",       tema: "Além da Terra",           href: "fases/fasesDificeis/DificilFase2.html", qtd: 6 },
+  { id: 8, nome: "História",     tema: "O passado que molda",     href: "fases/fasesDificeis/DificilFase3.html", qtd: 6 },
+];
+
+/* ------------------------------------------------------------------ */
+/* Contas / persistência                                              */
+/* ------------------------------------------------------------------ */
 
 function obterContas() {
   try {
@@ -27,6 +73,15 @@ function salvarContas(contas) {
   localStorage.setItem(CHAVE_CONTAS, JSON.stringify(contas));
 }
 
+function garantirEstruturaConta(dados) {
+  if (!dados || typeof dados !== "object") {
+    return { senha: "", pontos: 0, historiaCapitulo: 0 };
+  }
+  if (typeof dados.pontos !== "number") dados.pontos = 0;
+  if (typeof dados.historiaCapitulo !== "number") dados.historiaCapitulo = 0;
+  return dados;
+}
+
 function obterUsuarioAtual() {
   return localStorage.getItem(CHAVE_USUARIO_ATUAL);
 }
@@ -37,21 +92,52 @@ function definirUsuarioAtual(nickname) {
 
 function fazerLogout() {
   localStorage.removeItem(CHAVE_USUARIO_ATUAL);
+  sessionStorage.removeItem(CHAVE_MODO);
+  sessionStorage.removeItem(CHAVE_CAPITULO);
   window.location.href = RAIZ + "index.html";
 }
 
 function obterPontosUsuario(nickname) {
   const contas = obterContas();
-  return contas[nickname] ? contas[nickname].pontos : 0;
+  return contas[nickname] ? (contas[nickname].pontos || 0) : 0;
 }
 
-function adicionarPontos(quantidade) {
+function obterCapituloHistoria(nickname) {
+  const contas = obterContas();
+  if (!contas[nickname]) return 0;
+  return contas[nickname].historiaCapitulo || 0;
+}
+
+function avancarCapituloHistoria() {
   const nickname = obterUsuarioAtual();
   if (!nickname) return;
   const contas = obterContas();
   if (!contas[nickname]) return;
-  contas[nickname].pontos = (contas[nickname].pontos || 0) + quantidade;
+  garantirEstruturaConta(contas[nickname]);
+  const atual = contas[nickname].historiaCapitulo || 0;
+  if (atual < CAPITULOS_HISTORIA.length) {
+    contas[nickname].historiaCapitulo = atual + 1;
+    salvarContas(contas);
+  }
+}
+
+function adicionarPontos(quantidade) {
+  const nickname = obterUsuarioAtual();
+  if (!nickname) return null;
+  const contas = obterContas();
+  if (!contas[nickname]) return null;
+  garantirEstruturaConta(contas[nickname]);
+  const antes = contas[nickname].pontos || 0;
+  const tituloAntes = obterTituloPorPontos(antes);
+  contas[nickname].pontos = antes + quantidade;
+  const depois = contas[nickname].pontos;
+  const tituloDepois = obterTituloPorPontos(depois);
   salvarContas(contas);
+  return {
+    pontos: depois,
+    subiuTitulo: tituloAntes.id !== tituloDepois.id,
+    titulo: tituloDepois,
+  };
 }
 
 function exigirLogin() {
@@ -62,8 +148,35 @@ function exigirLogin() {
     window.location.href = RAIZ + "index.html";
     return null;
   }
+  garantirEstruturaConta(contas[nickname]);
+  salvarContas(contas);
   return nickname;
 }
+
+/* ------------------------------------------------------------------ */
+/* Modo de jogo (session)                                             */
+/* ------------------------------------------------------------------ */
+
+function definirModo(modo) {
+  sessionStorage.setItem(CHAVE_MODO, modo);
+}
+
+function obterModo() {
+  return sessionStorage.getItem(CHAVE_MODO) || "rapido";
+}
+
+function definirCapituloSessao(id) {
+  sessionStorage.setItem(CHAVE_CAPITULO, String(id));
+}
+
+function obterCapituloSessao() {
+  const v = sessionStorage.getItem(CHAVE_CAPITULO);
+  return v === null ? null : Number(v);
+}
+
+/* ------------------------------------------------------------------ */
+/* Login                                                              */
+/* ------------------------------------------------------------------ */
 
 function iniciarLogin() {
   const modal = document.getElementById("modalLogin");
@@ -81,13 +194,9 @@ function iniciarLogin() {
   const campoSenha = document.getElementById("campoSenha");
   const mensagemErro = document.getElementById("mensagemErroLogin");
 
-  modal.addEventListener("cancel", (evento) => {
-    evento.preventDefault();
-  });
-  modal.addEventListener("click", (evento) => {
-    if (evento.target === modal) {
-      evento.stopPropagation();
-    }
+  modal.addEventListener("cancel", (e) => e.preventDefault());
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) e.stopPropagation();
   });
 
   if (formulario) {
@@ -108,7 +217,7 @@ function iniciarLogin() {
       const contasAtuais = obterContas();
 
       if (!contasAtuais[nickname]) {
-        contasAtuais[nickname] = { senha: senha, pontos: 0 };
+        contasAtuais[nickname] = { senha, pontos: 0, historiaCapitulo: 0 };
         salvarContas(contasAtuais);
         definirUsuarioAtual(nickname);
         window.location.href = RAIZ + "pagina2.html";
@@ -121,52 +230,182 @@ function iniciarLogin() {
         return;
       }
 
+      garantirEstruturaConta(contasAtuais[nickname]);
+      salvarContas(contasAtuais);
       definirUsuarioAtual(nickname);
       window.location.href = RAIZ + "pagina2.html";
     });
   }
 
-  if (typeof modal.showModal === "function") {
-    modal.showModal();
-  }
+  if (typeof modal.showModal === "function") modal.showModal();
 }
+
+/* ------------------------------------------------------------------ */
+/* pagina2 — boas-vindas + escolha de modo                            */
+/* ------------------------------------------------------------------ */
 
 function iniciarBoasVindas() {
-  const saudacao = document.getElementById("saudacaoUsuario");
-  if (!saudacao) return;
   const nickname = exigirLogin();
   if (!nickname) return;
-  saudacao.textContent = `Bem-vindo, ${nickname}!`;
+
+  const saudacao = document.getElementById("saudacaoUsuario");
+  if (saudacao) saudacao.textContent = `Olá, ${nickname}`;
+
+  const pontos = obterPontosUsuario(nickname);
+  const titulo = obterTituloPorPontos(pontos);
+  const proximo = obterProximoTitulo(pontos);
+
+  const elTitulo = document.getElementById("tituloAtual");
+  if (elTitulo) elTitulo.textContent = `${titulo.emoji} ${titulo.nome}`;
+
+  const elPontos = document.getElementById("pontosPerfil");
+  if (elPontos) elPontos.textContent = pontos;
+
+  const elProx = document.getElementById("proximoTitulo");
+  if (elProx) {
+    if (proximo) {
+      elProx.textContent = `Próximo: ${proximo.nome} (${proximo.min} pts)`;
+    } else {
+      elProx.textContent = "Você alcançou o título máximo!";
+    }
+  }
+
+  const botaoRapido = document.getElementById("botaoModoRapido");
+  const botaoHistoria = document.getElementById("botaoModoHistoria");
+
+  if (botaoRapido) {
+    botaoRapido.addEventListener("click", (e) => {
+      e.preventDefault();
+      definirModo("rapido");
+      window.location.href = RAIZ + "pagina3.html";
+    });
+  }
+  if (botaoHistoria) {
+    botaoHistoria.addEventListener("click", (e) => {
+      e.preventDefault();
+      definirModo("historia");
+      window.location.href = RAIZ + "historia.html";
+    });
+  }
 }
 
+/* ------------------------------------------------------------------ */
+/* pagina3 — jogo rápido / dificuldade                                */
+/* ------------------------------------------------------------------ */
+
 function iniciarEscolhaDificuldade() {
-  const seletor = document.getElementById("seletorDificuldade");
-  if (!seletor) return;
   const nickname = exigirLogin();
   if (!nickname) return;
 
+  definirModo("rapido");
+
   const displayPontos = document.getElementById("pontosAtuais");
-  if (displayPontos) {
-    displayPontos.textContent = obterPontosUsuario(nickname);
+  if (displayPontos) displayPontos.textContent = obterPontosUsuario(nickname);
+
+  const elTitulo = document.getElementById("tituloPill");
+  if (elTitulo) {
+    const t = obterTituloPorPontos(obterPontosUsuario(nickname));
+    elTitulo.textContent = `${t.emoji} ${t.nome}`;
   }
+
+  const seletor = document.getElementById("seletorDificuldade");
+  if (!seletor) return;
 
   const botaoFacil = document.getElementById("botaoJogarFacil");
   const botaoMedio = document.getElementById("botaoJogarMedio");
   const botaoDificil = document.getElementById("botaoJogarDificil");
-
   const botoes = { facil: botaoFacil, medio: botaoMedio, dificil: botaoDificil };
 
   function atualizarVisibilidade() {
-    Object.values(botoes).forEach((botao) => botao && botao.classList.add("oculto"));
+    Object.values(botoes).forEach((b) => b && b.classList.add("oculto"));
     const escolha = seletor.value;
-    if (escolha && botoes[escolha]) {
-      botoes[escolha].classList.remove("oculto");
-    }
+    if (escolha && botoes[escolha]) botoes[escolha].classList.remove("oculto");
   }
 
   seletor.addEventListener("change", atualizarVisibilidade);
   atualizarVisibilidade();
 }
+
+/* ------------------------------------------------------------------ */
+/* historia.html — hub do modo história                               */
+/* ------------------------------------------------------------------ */
+
+function iniciarHistoria() {
+  const nickname = exigirLogin();
+  if (!nickname) return;
+
+  definirModo("historia");
+
+  const pontos = obterPontosUsuario(nickname);
+  const titulo = obterTituloPorPontos(pontos);
+  const liberado = obterCapituloHistoria(nickname); // próximo a jogar (0 = primeiro)
+
+  const elPontos = document.getElementById("pontosAtuais");
+  if (elPontos) elPontos.textContent = pontos;
+
+  const elTitulo = document.getElementById("tituloPill");
+  if (elTitulo) elTitulo.textContent = `${titulo.emoji} ${titulo.nome}`;
+
+  const elProgresso = document.getElementById("progressoHistoria");
+  if (elProgresso) {
+    const feitos = Math.min(liberado, CAPITULOS_HISTORIA.length);
+    elProgresso.textContent = `${feitos} / ${CAPITULOS_HISTORIA.length} capítulos`;
+  }
+
+  const lista = document.getElementById("listaCapitulos");
+  if (!lista) return;
+
+  lista.innerHTML = "";
+
+  CAPITULOS_HISTORIA.forEach((cap) => {
+    const bloqueado = cap.id > liberado;
+    const concluido = cap.id < liberado;
+    const atual = cap.id === liberado && liberado < CAPITULOS_HISTORIA.length;
+
+    const item = document.createElement("div");
+    item.className = "capitulo-item" +
+      (bloqueado ? " capitulo-bloqueado" : "") +
+      (concluido ? " capitulo-concluido" : "") +
+      (atual ? " capitulo-atual" : "");
+
+    let status = "";
+    if (concluido) status = "Concluído";
+    else if (atual) status = "Jogar agora";
+    else if (liberado >= CAPITULOS_HISTORIA.length && cap.id === CAPITULOS_HISTORIA.length - 1)
+      status = "Concluído";
+    else status = "Bloqueado";
+
+    item.innerHTML = `
+      <div class="capitulo-num">${cap.id + 1}</div>
+      <div class="capitulo-info">
+        <strong>${escaparHtml(cap.nome)}</strong>
+        <span class="capitulo-tema">${escaparHtml(cap.tema)}</span>
+      </div>
+      <div class="capitulo-status">${status}</div>
+    `;
+
+    if (!bloqueado && liberado < CAPITULOS_HISTORIA.length && (atual || concluido)) {
+      // permite rejogar concluídos e jogar o atual
+      item.style.cursor = "pointer";
+      item.addEventListener("click", () => {
+        definirModo("historia");
+        definirCapituloSessao(cap.id);
+        window.location.href = RAIZ + cap.href;
+      });
+    }
+
+    lista.appendChild(item);
+  });
+
+  if (liberado >= CAPITULOS_HISTORIA.length) {
+    const fim = document.getElementById("historiaCompleta");
+    if (fim) fim.classList.remove("oculto");
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Ranking                                                            */
+/* ------------------------------------------------------------------ */
 
 function iniciarRanking() {
   const corpoTabela = document.getElementById("corpoTabelaRanking");
@@ -176,24 +415,32 @@ function iniciarRanking() {
 
   const contas = obterContas();
   const listaOrdenada = Object.entries(contas)
-    .map(([nick, dados]) => ({ nickname: nick, pontos: dados.pontos || 0 }))
+    .map(([nick, dados]) => {
+      garantirEstruturaConta(dados);
+      const pts = dados.pontos || 0;
+      return {
+        nickname: nick,
+        pontos: pts,
+        titulo: obterTituloPorPontos(pts),
+        historia: dados.historiaCapitulo || 0,
+      };
+    })
     .sort((a, b) => b.pontos - a.pontos);
 
   corpoTabela.innerHTML = "";
 
   if (listaOrdenada.length === 0) {
     const linha = document.createElement("tr");
-    linha.innerHTML = `<td colspan="3" style="text-align:center;color:var(--text-faint);">Nenhum jogador ainda. Seja o primeiro!</td>`;
+    linha.innerHTML = `<td colspan="4" style="text-align:center;color:var(--text-faint);">Nenhum jogador ainda. Seja o primeiro!</td>`;
     corpoTabela.appendChild(linha);
   } else {
     listaOrdenada.forEach((entrada, indice) => {
       const linha = document.createElement("tr");
-      if (entrada.nickname === nickname) {
-        linha.classList.add("linha-atual");
-      }
+      if (entrada.nickname === nickname) linha.classList.add("linha-atual");
       linha.innerHTML = `
         <td class="coluna-posicao">${indice + 1}</td>
         <td>${escaparHtml(entrada.nickname)}</td>
+        <td class="coluna-titulo">${entrada.titulo.emoji} ${escaparHtml(entrada.titulo.nome)}</td>
         <td class="coluna-pontos">${entrada.pontos}</td>
       `;
       corpoTabela.appendChild(linha);
@@ -201,10 +448,12 @@ function iniciarRanking() {
   }
 
   const botaoSair = document.getElementById("botaoSair");
-  if (botaoSair) {
-    botaoSair.addEventListener("click", fazerLogout);
-  }
+  if (botaoSair) botaoSair.addEventListener("click", fazerLogout);
 }
+
+/* ------------------------------------------------------------------ */
+/* Helpers de fase                                                    */
+/* ------------------------------------------------------------------ */
 
 function escaparHtml(texto) {
   const div = document.createElement("div");
