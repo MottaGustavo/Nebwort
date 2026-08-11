@@ -1,6 +1,6 @@
 /* ===================================================================
    NebWort — fase-engine.js
-   Lógica comum de todas as páginas de fase.
+   Lógica comum das fases + integração com modo história e títulos.
    =================================================================== */
 
 import { carregarModelo, avaliarRelacao, emModoFallback } from "./semantica.js";
@@ -9,11 +9,14 @@ import { carregarModelo, avaliarRelacao, emModoFallback } from "./semantica.js";
  * @param {object} opcoes
  * @param {string[]} opcoes.palavras
  * @param {number} opcoes.quantidade
- * @param {string} [opcoes.proximaHref] — vazio = última fase
+ * @param {string} [opcoes.proximaHref] — usado só no modo rápido
  */
 export function iniciarFase({ palavras, quantidade, proximaHref = "" }) {
   const nickname = exigirLogin();
   if (!nickname) return;
+
+  const modo = obterModo();
+  const capituloSessao = obterCapituloSessao();
 
   const elPalavra = document.getElementById("palavraSorteada");
   const elPontosPill = document.getElementById("pontosAtuais");
@@ -27,13 +30,13 @@ export function iniciarFase({ palavras, quantidade, proximaHref = "" }) {
   const constelacao = document.getElementById("constelacaoRespostas");
   const resumoRodada = document.getElementById("resumoRodada");
 
-  if (elPontosPill) elPontosPill.textContent = obterPontosUsuario(nickname);
+  const pontosIniciais = obterPontosUsuario(nickname);
+  if (elPontosPill) elPontosPill.textContent = pontosIniciais;
 
   const palavraSorteada = palavras[sortearIndice(palavras)];
   if (elPalavra) elPalavra.textContent = palavraSorteada;
 
   anexarFormatacaoAutomatica(campoResposta);
-
   if (botaoEnviar) botaoEnviar.disabled = true;
 
   carregarModelo().then(() => {
@@ -71,13 +74,9 @@ export function iniciarFase({ palavras, quantidade, proximaHref = "" }) {
       totalPontos += pontos;
 
       let rotulo;
-      if (resultado.motivo === "igual") {
-        rotulo = "igual";
-      } else if (resultado.similaridade === null) {
-        rotulo = "s/ checagem";
-      } else {
-        rotulo = Math.round(resultado.similaridade * 100) + "%";
-      }
+      if (resultado.motivo === "igual") rotulo = "igual";
+      else if (resultado.similaridade === null) rotulo = "s/ checagem";
+      else rotulo = Math.round(resultado.similaridade * 100) + "%";
 
       const no = document.createElement("span");
       no.className = "no-resposta " + (passou ? "aprovado" : "reprovado");
@@ -88,20 +87,49 @@ export function iniciarFase({ palavras, quantidade, proximaHref = "" }) {
       if (constelacao) constelacao.appendChild(no);
     }
 
-    adicionarPontos(totalPontos);
-    if (elPontosPill) elPontosPill.textContent = obterPontosUsuario(nickname);
+    const resultadoPontos = adicionarPontos(totalPontos);
+    if (elPontosPill && resultadoPontos) {
+      elPontosPill.textContent = resultadoPontos.pontos;
+    }
+
+    // No modo história: avança capítulo se for o capítulo atual liberado
+    if (modo === "historia" && capituloSessao !== null) {
+      const liberado = obterCapituloHistoria(nickname);
+      if (capituloSessao === liberado) {
+        avancarCapituloHistoria();
+      }
+    }
 
     if (resumoRodada) {
       resumoRodada.classList.remove("oculto");
-      resumoRodada.innerHTML =
-        "Você ganhou <strong>" + totalPontos + "</strong> ponto(s) nesta rodada.";
+      let html = "Você ganhou <strong>" + totalPontos + "</strong> ponto(s) nesta rodada.";
+      if (resultadoPontos && resultadoPontos.subiuTitulo) {
+        html +=
+          "<br><span style=\"color:var(--good)\">Novo título: " +
+          resultadoPontos.titulo.emoji +
+          " " +
+          escaparHtml(resultadoPontos.titulo.nome) +
+          "!</span>";
+      }
+      resumoRodada.innerHTML = html;
     }
 
     botaoEnviar.textContent = "Enviar";
 
     if (botaoProxima) {
       botaoProxima.disabled = false;
-      if (proximaHref) {
+
+      if (modo === "historia") {
+        botaoProxima.textContent = "Voltar à trilha";
+        botaoProxima.addEventListener(
+          "click",
+          () => {
+            window.location.href =
+              (typeof CAMINHO_RAIZ !== "undefined" ? CAMINHO_RAIZ : "") + "historia.html";
+          },
+          { once: true }
+        );
+      } else if (proximaHref) {
         botaoProxima.textContent = "Próxima pergunta";
         botaoProxima.addEventListener(
           "click",
@@ -115,7 +143,8 @@ export function iniciarFase({ palavras, quantidade, proximaHref = "" }) {
         botaoProxima.addEventListener(
           "click",
           () => {
-            window.location.href = (typeof CAMINHO_RAIZ !== "undefined" ? CAMINHO_RAIZ : "") + "ranking.html";
+            window.location.href =
+              (typeof CAMINHO_RAIZ !== "undefined" ? CAMINHO_RAIZ : "") + "ranking.html";
           },
           { once: true }
         );
