@@ -61,7 +61,6 @@ body {
   flex-direction: column;
 }
 
-/* subtle starfield */
 body::before {
   content: "";
   position: fixed;
@@ -89,10 +88,7 @@ h1, h2, h3 {
 p { margin: 0 0 1em; color: var(--text-dim); }
 
 .oculto { display: none !important; }
-
-/* ---------------------------------------------------------------- */
-/* layout shell                                                      */
-/* ---------------------------------------------------------------- */
+.texto-dim { color: var(--text-dim); font-size: 0.9rem; }
 
 .faixa-topo {
   position: relative;
@@ -141,6 +137,17 @@ p { margin: 0 0 1em; color: var(--text-dim); }
   padding: 4px 12px;
 }
 
+.titulo-pill {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  border: 1px solid #8b6bff33;
+  border-radius: 999px;
+  padding: 4px 12px;
+}
+
 .container-principal {
   position: relative;
   z-index: 1;
@@ -172,10 +179,6 @@ p { margin: 0 0 1em; color: var(--text-dim); }
   margin-bottom: 10px;
   display: block;
 }
-
-/* ---------------------------------------------------------------- */
-/* form controls                                                     */
-/* ---------------------------------------------------------------- */
 
 label {
   display: block;
@@ -236,6 +239,7 @@ button, .botao {
   align-items: center;
   justify-content: center;
   gap: 8px;
+  text-decoration: none;
 }
 
 button:active { transform: translateY(1px); }
@@ -245,14 +249,14 @@ button:active { transform: translateY(1px); }
   color: #fff;
   box-shadow: 0 8px 24px -8px #8b6bffaa;
 }
-.botao-primario:hover { box-shadow: 0 10px 28px -6px #8b6bffcc; }
+.botao-primario:hover { box-shadow: 0 10px 28px -6px #8b6bffcc; text-decoration: none; }
 
 .botao-secundario, button.botao-secundario {
   background: transparent;
   color: var(--text);
   border: 1px solid var(--border-strong);
 }
-.botao-secundario:hover { border-color: var(--accent-strong); color: var(--accent-strong); }
+.botao-secundario:hover { border-color: var(--accent-strong); color: var(--accent-strong); text-decoration: none; }
 
 .botao-perigo, button.botao-perigo {
   background: transparent;
@@ -293,10 +297,6 @@ button:disabled, .botao:disabled {
   margin-bottom: 16px;
 }
 
-/* ---------------------------------------------------------------- */
-/* dialog / modal de login                                           */
-/* ---------------------------------------------------------------- */
-
 dialog {
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-l);
@@ -318,10 +318,6 @@ dialog .cartao {
   border: none;
   max-width: none;
 }
-
-/* ---------------------------------------------------------------- */
-/* passos / etapas (pagina2)                                        */
-/* ---------------------------------------------------------------- */
 
 .lista-regras {
   list-style: none;
@@ -356,10 +352,160 @@ dialog .cartao {
   justify-content: center;
 }
 
-/* ---------------------------------------------------------------- */
-/* arena do jogo (fases)                                             */
-/* ---------------------------------------------------------------- */
+/* perfil + modos */
+.perfil-resumo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 18px 0 22px;
+}
 
+.perfil-bloco {
+  background: var(--bg-elev-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-m);
+  padding: 14px 16px;
+}
+
+.perfil-bloco-largo { grid-column: 1 / -1; }
+
+.perfil-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: 4px;
+}
+
+.modos-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.modo-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 18px;
+  border-radius: var(--radius-m);
+  border: 1px solid var(--border-strong);
+  background: var(--bg-elev-2);
+  color: var(--text);
+  text-decoration: none;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
+}
+
+.modo-card:hover {
+  border-color: var(--accent-strong);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+.modo-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+}
+
+.modo-card strong {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+}
+
+.modo-desc {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  line-height: 1.45;
+}
+
+/* história — capítulos */
+.historia-progresso {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  margin-bottom: 16px;
+}
+
+.lista-capitulos {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.capitulo-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: var(--radius-m);
+  border: 1px solid var(--border);
+  background: var(--bg-elev-2);
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.capitulo-item.capitulo-atual {
+  border-color: #8b6bff66;
+  background: var(--accent-soft);
+}
+
+.capitulo-item.capitulo-concluido {
+  border-color: #45e6c433;
+}
+
+.capitulo-item.capitulo-bloqueado {
+  opacity: 0.45;
+}
+
+.capitulo-item:not(.capitulo-bloqueado):hover {
+  border-color: var(--accent-strong);
+}
+
+.capitulo-num {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  border: 1px solid #8b6bff33;
+  color: var(--accent-strong);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.capitulo-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.capitulo-tema {
+  font-size: 0.82rem;
+  color: var(--text-faint);
+}
+
+.capitulo-status {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
+.capitulo-atual .capitulo-status { color: var(--accent-strong); }
+.capitulo-concluido .capitulo-status { color: var(--good); }
+
+/* arena */
 .arena {
   display: flex;
   flex-direction: column;
@@ -444,11 +590,7 @@ dialog .cartao {
 }
 .estado-modelo.erro .espiral { display: none; }
 
-.campo-resposta {
-  width: 100%;
-}
-
-/* conexões / chips de respostas avaliadas */
+.campo-resposta { width: 100%; }
 
 .constelacao-respostas {
   width: 100%;
@@ -461,7 +603,7 @@ dialog .cartao {
 
 .no-resposta {
   position: relative;
-  padding: 10px 16px 10px 16px;
+  padding: 10px 16px;
   border-radius: 999px;
   font-family: var(--font-mono);
   font-size: 0.86rem;
@@ -518,10 +660,7 @@ dialog .cartao {
 
 .resumo-rodada strong { color: var(--good); }
 
-/* ---------------------------------------------------------------- */
-/* ranking                                                           */
-/* ---------------------------------------------------------------- */
-
+/* ranking */
 .tabela-ranking {
   width: 100%;
   border-collapse: collapse;
@@ -556,6 +695,11 @@ dialog .cartao {
   width: 46px;
 }
 
+.tabela-ranking td.coluna-titulo {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+}
+
 .tabela-ranking td.coluna-pontos {
   font-family: var(--font-mono);
   color: var(--good);
@@ -563,28 +707,24 @@ dialog .cartao {
   text-align: right;
 }
 
-/* ---------------------------------------------------------------- */
-/* dificuldade (pagina3)                                             */
-/* ---------------------------------------------------------------- */
-
-.cartoes-dificuldade {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 10px;
-  margin: 4px 0 22px;
+.legenda-titulos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  margin-top: 18px;
+  font-size: 0.78rem;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
 }
-
-/* ---------------------------------------------------------------- */
-/* responsivo                                                        */
-/* ---------------------------------------------------------------- */
 
 @media (max-width: 560px) {
   .cartao { padding: 26px; border-radius: var(--radius-m); }
   .faixa-topo { padding: 14px 16px; }
   .nucleo-palavra { width: 140px; height: 140px; }
+  .modos-grid { grid-template-columns: 1fr; }
+  .perfil-resumo { grid-template-columns: 1fr; }
 }
 
-/* foco visível para acessibilidade */
 a:focus-visible,
 button:focus-visible,
 input:focus-visible,
