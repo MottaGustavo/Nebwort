@@ -62,90 +62,12 @@
   <script>const CAMINHO_RAIZ = "../../";</script>
   <script src="../../script.js"></script>
   <script type="module">
-    import { carregarModelo, calcularSimilaridade, emModoFallback } from "../../semantica.js";
-
-    const PALAVRAS_DA_FASE = ["pizza", "arroz", "feijao", "chocolate", "laranja", "queijo", "pao", "sorvete"];
-    const QUANTIDADE_ESPERADA = 2;
-    const PROXIMA_FASE_HREF = "FacilFase3.html";
-
-    const nickname = exigirLogin();
-    if (nickname) {
-      const elPalavra = document.getElementById("palavraSorteada");
-      const elPontosPill = document.getElementById("pontosAtuais");
-      const elEstadoModelo = document.getElementById("estadoModelo");
-      const elTextoEstadoModelo = document.getElementById("textoEstadoModelo");
-      const elAvisoFallback = document.getElementById("avisoFallback");
-      const campoResposta = document.getElementById("campoResposta");
-      const formResposta = document.getElementById("formResposta");
-      const botaoEnviar = document.getElementById("botaoEnviar");
-      const botaoProxima = document.getElementById("botaoProxima");
-      const constelacao = document.getElementById("constelacaoRespostas");
-      const resumoRodada = document.getElementById("resumoRodada");
-
-      if (elPontosPill) elPontosPill.textContent = obterPontosUsuario(nickname);
-
-      const indiceSorteado = sortearIndice(PALAVRAS_DA_FASE);
-      const palavraSorteada = PALAVRAS_DA_FASE[indiceSorteado];
-      if (elPalavra) elPalavra.textContent = palavraSorteada;
-
-      anexarFormatacaoAutomatica(campoResposta);
-
-      botaoEnviar.disabled = true;
-
-      carregarModelo().then(() => {
-        if (emModoFallback()) {
-          if (elEstadoModelo) elEstadoModelo.classList.add("erro");
-          if (elTextoEstadoModelo) elTextoEstadoModelo.textContent = "Modelo semântico indisponível — pontuando só pelo tamanho";
-          if (elAvisoFallback) elAvisoFallback.classList.remove("oculto");
-        } else {
-          if (elEstadoModelo) elEstadoModelo.classList.add("pronto");
-          if (elTextoEstadoModelo) elTextoEstadoModelo.textContent = "Modelo semântico pronto";
-        }
-        botaoEnviar.disabled = false;
-      });
-
-      formResposta.addEventListener("submit", async (evento) => {
-        evento.preventDefault();
-        const palavras = extrairPalavrasDigitadas(campoResposta.value).slice(0, QUANTIDADE_ESPERADA);
-        if (palavras.length === 0) return;
-
-        botaoEnviar.disabled = true;
-        botaoEnviar.textContent = "Validando...";
-        campoResposta.disabled = true;
-
-        let totalPontos = 0;
-        constelacao.innerHTML = "";
-
-        for (const palavra of palavras) {
-          const similaridade = await calcularSimilaridade(palavra, palavraSorteada);
-          const passou = similaridade === null ? true : similaridade >= LIMIAR_SIMILARIDADE;
-          const pontos = passou ? calcularPontosPalavra(palavra) : 0;
-          totalPontos += pontos;
-
-          const no = document.createElement("span");
-          no.className = "no-resposta " + (passou ? "aprovado" : "reprovado");
-          const rotuloSimilaridade = similaridade === null ? "s/ checagem" : Math.round(similaridade * 100) + "%";
-          no.innerHTML = escaparHtml(palavra) + ' <span class="similaridade">' + rotuloSimilaridade + '</span> <span class="pontos-ganhos">+' + pontos + '</span>';
-          constelacao.appendChild(no);
-        }
-
-        adicionarPontos(totalPontos);
-        if (elPontosPill) elPontosPill.textContent = obterPontosUsuario(nickname);
-
-        if (resumoRodada) {
-          resumoRodada.classList.remove("oculto");
-          resumoRodada.innerHTML = "Você ganhou <strong>" + totalPontos + "</strong> ponto(s) nesta rodada.";
-        }
-
-        botaoEnviar.textContent = "Enviar";
-        if (botaoProxima) {
-          botaoProxima.disabled = false;
-          botaoProxima.addEventListener("click", () => {
-            window.location.href = PROXIMA_FASE_HREF;
-          });
-        }
-      });
-    }
+    import { iniciarFase } from "../../fase-engine.js";
+    iniciarFase({
+      palavras: ["pizza", "arroz", "feijao", "chocolate", "laranja", "queijo", "pao", "sorvete"],
+      quantidade: 2,
+      proximaHref: "FacilFase3.html",
+    });
   </script>
 </body>
 </html>
