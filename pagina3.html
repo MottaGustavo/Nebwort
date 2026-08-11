@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NebWort — Escolher dificuldade</title>
+  <title>NebWort — Jogo rápido</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -11,15 +11,16 @@
   <header class="faixa-topo">
     <div class="marca"><span class="ponto"></span> NebWort</div>
     <div class="info-usuario">
+      <span class="titulo-pill" id="tituloPill">—</span>
       <span class="pontos-pill"><span id="pontosAtuais">0</span> pts</span>
     </div>
   </header>
 
   <main class="container-principal">
     <div class="cartao">
-      <span class="eyebrow">Rodada</span>
+      <span class="eyebrow">Jogo rápido</span>
       <h1>Escolha a dificuldade</h1>
-      <p>Quanto maior a dificuldade, mais palavras você precisa relacionar por rodada.</p>
+      <p>Temas aleatórios. Quanto maior a dificuldade, mais palavras por rodada.</p>
 
       <label for="seletorDificuldade">Dificuldade</label>
       <select id="seletorDificuldade">
@@ -36,6 +37,7 @@
       </div>
 
       <div class="linha-botoes" style="margin-top: 22px; border-top: 1px solid var(--border); padding-top: 20px;">
+        <a href="pagina2.html" class="botao botao-secundario">Voltar</a>
         <a href="ranking.html" class="botao botao-secundario">Ver ranking</a>
       </div>
     </div>
