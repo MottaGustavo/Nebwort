@@ -1,24 +1,17 @@
 /* ===================================================================
    NebWort / Semanti — script.js
-   Lógica compartilhada por TODAS as páginas: contas, login, pontos,
-   navegação protegida e mecânica das fases.
-   A validação semântica em si mora em semantica.js (módulo isolado).
+   Lógica compartilhada: contas, login, pontos, navegação e helpers de fase.
+   Validação semântica mora em semantica.js.
    =================================================================== */
 
-/* Caminho relativo até a raiz do site. Páginas dentro de subpastas
-   devem declarar `const CAMINHO_RAIZ = "../../";` ANTES de importar
-   este arquivo. Na raiz, nenhuma declaração é necessária. */
 const RAIZ = (typeof CAMINHO_RAIZ !== "undefined") ? CAMINHO_RAIZ : "";
 
 const CHAVE_CONTAS = "nebwortContas";
 const CHAVE_USUARIO_ATUAL = "nebwortUsuarioAtual";
 
-/* Limiar de similaridade semântica (0 a 1). Ajustável. */
-const LIMIAR_SIMILARIDADE = 0.5;
-
-/* ------------------------------------------------------------------ */
-/* Contas / persistência                                              */
-/* ------------------------------------------------------------------ */
+/* Limiar legado (as fases novas usam avaliarRelacao de semantica.js).
+   Mantido em 0.30 para qualquer código antigo que ainda consulte esta constante. */
+const LIMIAR_SIMILARIDADE = 0.30;
 
 function obterContas() {
   try {
@@ -61,12 +54,6 @@ function adicionarPontos(quantidade) {
   salvarContas(contas);
 }
 
-/* ------------------------------------------------------------------ */
-/* Proteção de páginas                                                 */
-/* ------------------------------------------------------------------ */
-
-/* Chamar no topo de toda página que exige estar logado.
-   Retorna o nickname logado, ou redireciona e retorna null. */
 function exigirLogin() {
   const nickname = obterUsuarioAtual();
   const contas = obterContas();
@@ -78,15 +65,10 @@ function exigirLogin() {
   return nickname;
 }
 
-/* ------------------------------------------------------------------ */
-/* index.html — modal de login                                        */
-/* ------------------------------------------------------------------ */
-
 function iniciarLogin() {
   const modal = document.getElementById("modalLogin");
-  if (!modal) return; // esta página não tem o modal de login
+  if (!modal) return;
 
-  // Se já existe usuário logado válido, pula direto para pagina2.
   const nicknameAtual = obterUsuarioAtual();
   const contas = obterContas();
   if (nicknameAtual && contas[nicknameAtual]) {
@@ -99,13 +81,11 @@ function iniciarLogin() {
   const campoSenha = document.getElementById("campoSenha");
   const mensagemErro = document.getElementById("mensagemErroLogin");
 
-  // Nunca deve poder fechar sem logar: bloqueia ESC e clique no backdrop.
   modal.addEventListener("cancel", (evento) => {
     evento.preventDefault();
   });
   modal.addEventListener("click", (evento) => {
     if (evento.target === modal) {
-      // clique fora do conteúdo (no próprio <dialog>, que ocupa o backdrop)
       evento.stopPropagation();
     }
   });
@@ -128,7 +108,6 @@ function iniciarLogin() {
       const contasAtuais = obterContas();
 
       if (!contasAtuais[nickname]) {
-        // conta nova
         contasAtuais[nickname] = { senha: senha, pontos: 0 };
         salvarContas(contasAtuais);
         definirUsuarioAtual(nickname);
@@ -136,7 +115,6 @@ function iniciarLogin() {
         return;
       }
 
-      // conta existente: valida senha
       if (contasAtuais[nickname].senha !== senha) {
         if (mensagemErro) mensagemErro.textContent = "Senha incorreta. Tente novamente.";
         if (campoSenha) campoSenha.classList.add("campo-erro");
@@ -153,10 +131,6 @@ function iniciarLogin() {
   }
 }
 
-/* ------------------------------------------------------------------ */
-/* pagina2.html — boas-vindas                                         */
-/* ------------------------------------------------------------------ */
-
 function iniciarBoasVindas() {
   const saudacao = document.getElementById("saudacaoUsuario");
   if (!saudacao) return;
@@ -164,10 +138,6 @@ function iniciarBoasVindas() {
   if (!nickname) return;
   saudacao.textContent = `Bem-vindo, ${nickname}!`;
 }
-
-/* ------------------------------------------------------------------ */
-/* pagina3.html — escolher dificuldade                                */
-/* ------------------------------------------------------------------ */
 
 function iniciarEscolhaDificuldade() {
   const seletor = document.getElementById("seletorDificuldade");
@@ -198,10 +168,6 @@ function iniciarEscolhaDificuldade() {
   atualizarVisibilidade();
 }
 
-/* ------------------------------------------------------------------ */
-/* ranking.html                                                       */
-/* ------------------------------------------------------------------ */
-
 function iniciarRanking() {
   const corpoTabela = document.getElementById("corpoTabelaRanking");
   if (!corpoTabela) return;
@@ -214,18 +180,25 @@ function iniciarRanking() {
     .sort((a, b) => b.pontos - a.pontos);
 
   corpoTabela.innerHTML = "";
-  listaOrdenada.forEach((entrada, indice) => {
+
+  if (listaOrdenada.length === 0) {
     const linha = document.createElement("tr");
-    if (entrada.nickname === nickname) {
-      linha.classList.add("linha-atual");
-    }
-    linha.innerHTML = `
-      <td class="coluna-posicao">${indice + 1}</td>
-      <td>${escaparHtml(entrada.nickname)}</td>
-      <td class="coluna-pontos">${entrada.pontos}</td>
-    `;
+    linha.innerHTML = `<td colspan="3" style="text-align:center;color:var(--text-faint);">Nenhum jogador ainda. Seja o primeiro!</td>`;
     corpoTabela.appendChild(linha);
-  });
+  } else {
+    listaOrdenada.forEach((entrada, indice) => {
+      const linha = document.createElement("tr");
+      if (entrada.nickname === nickname) {
+        linha.classList.add("linha-atual");
+      }
+      linha.innerHTML = `
+        <td class="coluna-posicao">${indice + 1}</td>
+        <td>${escaparHtml(entrada.nickname)}</td>
+        <td class="coluna-pontos">${entrada.pontos}</td>
+      `;
+      corpoTabela.appendChild(linha);
+    });
+  }
 
   const botaoSair = document.getElementById("botaoSair");
   if (botaoSair) {
@@ -239,24 +212,10 @@ function escaparHtml(texto) {
   return div.innerHTML;
 }
 
-/* ------------------------------------------------------------------ */
-/* Páginas de fase — mecânica compartilhada                           */
-/*                                                                     */
-/* Cada página de fase (Facil/Medio/Dificil FaseN.html) declara um     */
-/* array global `PALAVRAS_DA_FASE` e chama `iniciarFase(quantidade)`.  */
-/* A validação semântica (import assíncrono de semantica.js) é feita   */
-/* dentro do próprio HTML da fase, pois requer `type="module"`; aqui   */
-/* ficam apenas as partes que NÃO precisam de módulos ES.              */
-/* ------------------------------------------------------------------ */
-
-/* Sorteia um índice válido de um array de qualquer tamanho. */
 function sortearIndice(array) {
   return Math.floor(Math.random() * array.length);
 }
 
-/* Formata o campo de resposta: troca espaços por vírgula, remove
-   caracteres inválidos (mantém letras/acentos e vírgulas) e remove
-   vírgulas duplicadas/consecutivas. */
 function formatarCampoResposta(valorBruto) {
   let valor = valorBruto.replace(/\s+/g, ",");
   valor = valor.replace(/[^a-zA-ZÀ-ÖØ-öø-ÿ,]/g, "");
@@ -277,15 +236,18 @@ function anexarFormatacaoAutomatica(campoInput) {
   });
 }
 
-/* Extrai a lista de palavras digitadas (sem vazios, sem duplicar espaços). */
 function extrairPalavrasDigitadas(valorCampo) {
-  return valorCampo
-    .split(",")
-    .map((p) => p.trim())
-    .filter((p) => p.length > 0);
+  const vistas = new Set();
+  const resultado = [];
+  for (const p of valorCampo.split(",").map((x) => x.trim()).filter((x) => x.length > 0)) {
+    const chave = p.toLowerCase();
+    if (vistas.has(chave)) continue;
+    vistas.add(chave);
+    resultado.push(p);
+  }
+  return resultado;
 }
 
-/* Calcula a pontuação de uma palavra aprovada semanticamente. */
 function calcularPontosPalavra(palavra) {
   return palavra.length >= 5 ? 10 : 2;
 }
