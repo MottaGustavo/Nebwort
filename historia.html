@@ -21,19 +21,19 @@
       <span class="eyebrow">Trilha</span>
       <h1>Modo história</h1>
       <p>
-        Avance capítulo a capítulo. Cada um foca em um tema.
+        Nove temas, cinco capítulos cada (ex.: Animais por bioma).
         Conclua o atual para liberar o próximo.
       </p>
 
       <div class="historia-progresso">
-        Progresso: <strong id="progressoHistoria">0 / 9 capítulos</strong>
+        Progresso: <strong id="progressoHistoria">0 / 45</strong>
       </div>
 
       <div id="historiaCompleta" class="mensagem-aviso oculto" style="margin-top: 12px;">
-        Você concluiu toda a trilha. Pode rejogar qualquer capítulo ou testar o Jogo rápido.
+        Você concluiu toda a trilha. Pode rejogar qualquer capítulo.
       </div>
 
-      <div id="listaCapitulos" class="lista-capitulos"></div>
+      <div id="listaTemas" class="lista-temas"></div>
 
       <div class="linha-botoes" style="margin-top: 24px; border-top: 1px solid var(--border); padding-top: 20px;">
         <a href="pagina2.html" class="botao botao-secundario">Voltar</a>
@@ -43,8 +43,98 @@
   </main>
 
   <script src="script.js"></script>
-  <script>
-    iniciarHistoria();
+  <script type="module">
+    import { TEMAS_HISTORIA, TODOS_SUBS, TOTAL_SUBS } from "./capitulos-data.js";
+
+    const nickname = exigirLogin();
+    if (!nickname) throw new Error("login");
+
+    definirModo("historia");
+
+    const pontos = obterPontosUsuario(nickname);
+    const titulo = obterTituloPorPontos(pontos);
+    const liberado = obterCapituloHistoria(nickname);
+
+    const elPontos = document.getElementById("pontosAtuais");
+    if (elPontos) elPontos.textContent = pontos;
+
+    const elTitulo = document.getElementById("tituloPill");
+    if (elTitulo) elTitulo.textContent = `${titulo.emoji} ${titulo.nome}`;
+
+    const elProgresso = document.getElementById("progressoHistoria");
+    if (elProgresso) {
+      elProgresso.textContent = `${Math.min(liberado, TOTAL_SUBS)} / ${TOTAL_SUBS}`;
+    }
+
+    if (liberado >= TOTAL_SUBS) {
+      const fim = document.getElementById("historiaCompleta");
+      if (fim) fim.classList.remove("oculto");
+    }
+
+    const container = document.getElementById("listaTemas");
+    if (!container) throw new Error("lista");
+
+    TEMAS_HISTORIA.forEach((tema, temaIdx) => {
+      const bloco = document.createElement("div");
+      bloco.className = "tema-bloco";
+
+      const feitosNoTema = tema.subs.filter((_, sIdx) => {
+        const global = temaIdx * 5 + sIdx;
+        return global < liberado;
+      }).length;
+
+      bloco.innerHTML = `
+        <div class="tema-cabecalho">
+          <div>
+            <strong>${escaparHtml(tema.nome)}</strong>
+            <span class="capitulo-tema">${escaparHtml(tema.descricao)}</span>
+          </div>
+          <span class="tema-contador">${feitosNoTema}/5</span>
+        </div>
+        <div class="tema-subs"></div>
+      `;
+
+      const subsEl = bloco.querySelector(".tema-subs");
+
+      tema.subs.forEach((sub, subIdx) => {
+        const global = temaIdx * 5 + subIdx;
+        const bloqueado = global > liberado;
+        const concluido = global < liberado;
+        const atual = global === liberado && liberado < TOTAL_SUBS;
+
+        const item = document.createElement("div");
+        item.className = "capitulo-item" +
+          (bloqueado ? " capitulo-bloqueado" : "") +
+          (concluido ? " capitulo-concluido" : "") +
+          (atual ? " capitulo-atual" : "");
+
+        let status = "Bloqueado";
+        if (concluido) status = "Concluído";
+        else if (atual) status = "Jogar agora";
+
+        item.innerHTML = `
+          <div class="capitulo-num">${subIdx + 1}</div>
+          <div class="capitulo-info">
+            <strong>${escaparHtml(sub.nome)}</strong>
+            <span class="capitulo-tema">${escaparHtml(sub.tema)}</span>
+          </div>
+          <div class="capitulo-status">${status}</div>
+        `;
+
+        if (!bloqueado) {
+          item.style.cursor = "pointer";
+          item.addEventListener("click", () => {
+            definirModo("historia");
+            definirCapituloSessao(global);
+            window.location.href = `historia-fase.html?sub=${global}`;
+          });
+        }
+
+        subsEl.appendChild(item);
+      });
+
+      container.appendChild(bloco);
+    });
   </script>
 </body>
 </html>
