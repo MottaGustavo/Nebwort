@@ -7,14 +7,13 @@ const RAIZ = (typeof CAMINHO_RAIZ !== "undefined") ? CAMINHO_RAIZ : "";
 
 const CHAVE_CONTAS = "nebwortContas";
 const CHAVE_USUARIO_ATUAL = "nebwortUsuarioAtual";
-const CHAVE_MODO = "nebwortModo"; // "rapido" | "historia"
+const CHAVE_MODO = "nebwortModo";
 const CHAVE_CAPITULO = "nebwortCapitulo";
 
 const LIMIAR_SIMILARIDADE = 0.30;
 
-/* ------------------------------------------------------------------ */
-/* Títulos por pontuação                                              */
-/* ------------------------------------------------------------------ */
+/** Total de subcapítulos do modo história (9 temas × 5). */
+const TOTAL_SUBS_HISTORIA = 45;
 
 const TITULOS = [
   { min: 0,   id: "aprendiz",     nome: "Aprendiz",           emoji: "🌱" },
@@ -38,26 +37,6 @@ function obterProximoTitulo(pontos) {
   }
   return null;
 }
-
-/* ------------------------------------------------------------------ */
-/* Capítulos do modo história                                         */
-/* ------------------------------------------------------------------ */
-
-const CAPITULOS_HISTORIA = [
-  { id: 0, nome: "Animais",      tema: "Quem vive e respira",     href: "fases/fasesFaceis/FacilFase1.html",   qtd: 2 },
-  { id: 1, nome: "Comida",       tema: "Sabores do dia a dia",    href: "fases/fasesFaceis/FacilFase2.html",   qtd: 2 },
-  { id: 2, nome: "Natureza",     tema: "O mundo lá fora",         href: "fases/fasesFaceis/FacilFase3.html",   qtd: 2 },
-  { id: 3, nome: "Profissões",   tema: "O que as pessoas fazem",  href: "fases/fasesMedias/MedioFase1.html",   qtd: 4 },
-  { id: 4, nome: "Esportes",     tema: "Corpo em movimento",      href: "fases/fasesMedias/MedioFase2.html",   qtd: 4 },
-  { id: 5, nome: "Tecnologia",   tema: "Máquinas e redes",        href: "fases/fasesMedias/MedioFase3.html",   qtd: 4 },
-  { id: 6, nome: "Emoções",      tema: "O que sentimos",          href: "fases/fasesDificeis/DificilFase1.html", qtd: 6 },
-  { id: 7, nome: "Espaço",       tema: "Além da Terra",           href: "fases/fasesDificeis/DificilFase2.html", qtd: 6 },
-  { id: 8, nome: "História",     tema: "O passado que molda",     href: "fases/fasesDificeis/DificilFase3.html", qtd: 6 },
-];
-
-/* ------------------------------------------------------------------ */
-/* Contas / persistência                                              */
-/* ------------------------------------------------------------------ */
 
 function obterContas() {
   try {
@@ -115,7 +94,7 @@ function avancarCapituloHistoria() {
   if (!contas[nickname]) return;
   garantirEstruturaConta(contas[nickname]);
   const atual = contas[nickname].historiaCapitulo || 0;
-  if (atual < CAPITULOS_HISTORIA.length) {
+  if (atual < TOTAL_SUBS_HISTORIA) {
     contas[nickname].historiaCapitulo = atual + 1;
     salvarContas(contas);
   }
@@ -153,10 +132,6 @@ function exigirLogin() {
   return nickname;
 }
 
-/* ------------------------------------------------------------------ */
-/* Modo de jogo (session)                                             */
-/* ------------------------------------------------------------------ */
-
 function definirModo(modo) {
   sessionStorage.setItem(CHAVE_MODO, modo);
 }
@@ -173,10 +148,6 @@ function obterCapituloSessao() {
   const v = sessionStorage.getItem(CHAVE_CAPITULO);
   return v === null ? null : Number(v);
 }
-
-/* ------------------------------------------------------------------ */
-/* Login                                                              */
-/* ------------------------------------------------------------------ */
 
 function iniciarLogin() {
   const modal = document.getElementById("modalLogin");
@@ -240,10 +211,6 @@ function iniciarLogin() {
   if (typeof modal.showModal === "function") modal.showModal();
 }
 
-/* ------------------------------------------------------------------ */
-/* pagina2 — boas-vindas + escolha de modo                            */
-/* ------------------------------------------------------------------ */
-
 function iniciarBoasVindas() {
   const nickname = exigirLogin();
   if (!nickname) return;
@@ -289,10 +256,6 @@ function iniciarBoasVindas() {
   }
 }
 
-/* ------------------------------------------------------------------ */
-/* pagina3 — jogo rápido / dificuldade                                */
-/* ------------------------------------------------------------------ */
-
 function iniciarEscolhaDificuldade() {
   const nickname = exigirLogin();
   if (!nickname) return;
@@ -325,87 +288,6 @@ function iniciarEscolhaDificuldade() {
   seletor.addEventListener("change", atualizarVisibilidade);
   atualizarVisibilidade();
 }
-
-/* ------------------------------------------------------------------ */
-/* historia.html — hub do modo história                               */
-/* ------------------------------------------------------------------ */
-
-function iniciarHistoria() {
-  const nickname = exigirLogin();
-  if (!nickname) return;
-
-  definirModo("historia");
-
-  const pontos = obterPontosUsuario(nickname);
-  const titulo = obterTituloPorPontos(pontos);
-  const liberado = obterCapituloHistoria(nickname); // próximo a jogar (0 = primeiro)
-
-  const elPontos = document.getElementById("pontosAtuais");
-  if (elPontos) elPontos.textContent = pontos;
-
-  const elTitulo = document.getElementById("tituloPill");
-  if (elTitulo) elTitulo.textContent = `${titulo.emoji} ${titulo.nome}`;
-
-  const elProgresso = document.getElementById("progressoHistoria");
-  if (elProgresso) {
-    const feitos = Math.min(liberado, CAPITULOS_HISTORIA.length);
-    elProgresso.textContent = `${feitos} / ${CAPITULOS_HISTORIA.length} capítulos`;
-  }
-
-  const lista = document.getElementById("listaCapitulos");
-  if (!lista) return;
-
-  lista.innerHTML = "";
-
-  CAPITULOS_HISTORIA.forEach((cap) => {
-    const bloqueado = cap.id > liberado;
-    const concluido = cap.id < liberado;
-    const atual = cap.id === liberado && liberado < CAPITULOS_HISTORIA.length;
-
-    const item = document.createElement("div");
-    item.className = "capitulo-item" +
-      (bloqueado ? " capitulo-bloqueado" : "") +
-      (concluido ? " capitulo-concluido" : "") +
-      (atual ? " capitulo-atual" : "");
-
-    let status = "";
-    if (concluido) status = "Concluído";
-    else if (atual) status = "Jogar agora";
-    else if (liberado >= CAPITULOS_HISTORIA.length && cap.id === CAPITULOS_HISTORIA.length - 1)
-      status = "Concluído";
-    else status = "Bloqueado";
-
-    item.innerHTML = `
-      <div class="capitulo-num">${cap.id + 1}</div>
-      <div class="capitulo-info">
-        <strong>${escaparHtml(cap.nome)}</strong>
-        <span class="capitulo-tema">${escaparHtml(cap.tema)}</span>
-      </div>
-      <div class="capitulo-status">${status}</div>
-    `;
-
-    if (!bloqueado && liberado < CAPITULOS_HISTORIA.length && (atual || concluido)) {
-      // permite rejogar concluídos e jogar o atual
-      item.style.cursor = "pointer";
-      item.addEventListener("click", () => {
-        definirModo("historia");
-        definirCapituloSessao(cap.id);
-        window.location.href = RAIZ + cap.href;
-      });
-    }
-
-    lista.appendChild(item);
-  });
-
-  if (liberado >= CAPITULOS_HISTORIA.length) {
-    const fim = document.getElementById("historiaCompleta");
-    if (fim) fim.classList.remove("oculto");
-  }
-}
-
-/* ------------------------------------------------------------------ */
-/* Ranking                                                            */
-/* ------------------------------------------------------------------ */
 
 function iniciarRanking() {
   const corpoTabela = document.getElementById("corpoTabelaRanking");
@@ -451,10 +333,6 @@ function iniciarRanking() {
   if (botaoSair) botaoSair.addEventListener("click", fazerLogout);
 }
 
-/* ------------------------------------------------------------------ */
-/* Helpers de fase                                                    */
-/* ------------------------------------------------------------------ */
-
 function escaparHtml(texto) {
   const div = document.createElement("div");
   div.textContent = texto;
@@ -467,7 +345,7 @@ function sortearIndice(array) {
 
 function formatarCampoResposta(valorBruto) {
   let valor = valorBruto.replace(/\s+/g, ",");
-  valor = valor.replace(/[^a-zA-ZÀ-ÖØ-öø-ÿ,]/g, "");
+  valor = valor.replace(/[^a-zA-ZÀ-ÖØ-öø-ÿ,\-]/g, "");
   valor = valor.replace(/,+/g, ",");
   valor = valor.replace(/^,/, "");
   return valor;
