@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NebWort — História</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header class="faixa-topo">
+    <div class="marca"><span class="ponto"></span> NebWort</div>
+    <div class="info-usuario">
+      <span class="pontos-pill"><span id="pontosAtuais">0</span> pts</span>
+    </div>
+  </header>
+
+  <main class="container-principal">
+    <div class="cartao cartao-largo">
+      <span class="eyebrow" id="eyebrowFase">História</span>
+      <h1>Relacione com a palavra sorteada</h1>
+
+      <div class="arena">
+        <div class="nucleo-palavra">
+          <div class="anel"></div>
+          <span id="palavraSorteada">...</span>
+        </div>
+
+        <div class="dica-quantidade" id="dicaQuantidade">Digite as palavras, separadas por vírgula</div>
+
+        <div class="estado-modelo" id="estadoModelo">
+          <span class="espiral"></span>
+          <span id="textoEstadoModelo">Carregando modelo semântico...</span>
+        </div>
+
+        <div class="mensagem-aviso oculto" id="avisoFallback">
+          O modelo semântico não pôde ser carregado (sem internet no primeiro uso?).
+          O jogo continua normalmente, pontuando apenas pelo tamanho das palavras.
+        </div>
+
+        <form id="formResposta" class="campo-resposta" novalidate>
+          <label for="campoResposta">Suas respostas</label>
+          <input type="text" id="campoResposta" placeholder="palavra1, palavra2..." autocomplete="off" />
+          <div class="linha-botoes">
+            <button type="submit" id="botaoEnviar" class="botao botao-primario">Enviar</button>
+            <button type="button" id="botaoProxima" class="botao botao-secundario" disabled>Voltar à trilha</button>
+          </div>
+        </form>
+
+        <div class="constelacao-respostas" id="constelacaoRespostas"></div>
+        <div class="resumo-rodada oculto" id="resumoRodada"></div>
+      </div>
+
+      <div class="linha-botoes" style="margin-top: 28px; border-top: 1px solid var(--border); padding-top: 20px;">
+        <a href="historia.html" class="botao botao-secundario">Trilha</a>
+        <a href="ranking.html" class="botao botao-secundario">Ranking</a>
+      </div>
+    </div>
+  </main>
+
+  <script>const CAMINHO_RAIZ = "";</script>
+  <script src="script.js"></script>
+  <script type="module">
+    import { TODOS_SUBS, TOTAL_SUBS } from "./capitulos-data.js";
+    import { iniciarFase } from "./fase-engine.js";
+
+    definirModo("historia");
+
+    const params = new URLSearchParams(window.location.search);
+    let idx = Number(params.get("sub"));
+    if (Number.isNaN(idx) || idx < 0 || idx >= TOTAL_SUBS) {
+      const liberado = obterCapituloHistoria(obterUsuarioAtual() || "");
+      idx = Math.min(liberado, TOTAL_SUBS - 1);
+    }
+
+    definirCapituloSessao(idx);
+    const sub = TODOS_SUBS[idx];
+
+    document.title = `NebWort — ${sub.temaNome} · ${sub.nome}`;
+    const eyebrow = document.getElementById("eyebrowFase");
+    if (eyebrow) {
+      eyebrow.textContent = `História · ${sub.temaNome} · ${sub.nome} (${sub.subIdx + 1}/5)`;
+    }
+    const dica = document.getElementById("dicaQuantidade");
+    if (dica) {
+      dica.textContent = `Digite ${sub.qtd} palavra(s), separadas por vírgula`;
+    }
+    const input = document.getElementById("campoResposta");
+    if (input) {
+      input.placeholder = Array.from({ length: sub.qtd }, (_, i) => `palavra${i + 1}`).join(", ");
+    }
+
+    iniciarFase({
+      palavras: sub.palavras,
+      quantidade: sub.qtd,
+      proximaHref: "",
+    });
+  </script>
+</body>
+</html>
