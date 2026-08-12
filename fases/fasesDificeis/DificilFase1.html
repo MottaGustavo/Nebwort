@@ -7,37 +7,26 @@
   <link rel="stylesheet" href="../../style.css" />
 </head>
 <body>
-
   <header class="faixa-topo">
-    <div class="marca"><span class="ponto"></span> NebWort</div>
+    <div class="marca"><span class="mark">N</span> NebWort</div>
     <div class="info-usuario">
       <span class="pontos-pill"><span id="pontosAtuais">0</span> pts</span>
     </div>
   </header>
-
   <main class="container-principal">
     <div class="cartao cartao-largo">
       <span class="eyebrow">Difícil · Fase 1 de 3 · Emoções</span>
-      <h1>Relacione com a palavra sorteada</h1>
-
+      <h1>Relaciona com a palavra</h1>
       <div class="arena">
-        <div class="nucleo-palavra">
-          <div class="anel"></div>
-          <span id="palavraSorteada">...</span>
-        </div>
-
+        <div class="nucleo-palavra"><span id="palavraSorteada">...</span></div>
         <div class="dica-quantidade">Digite 6 palavra(s), separadas por vírgula</div>
-
         <div class="estado-modelo" id="estadoModelo">
           <span class="espiral"></span>
           <span id="textoEstadoModelo">Carregando modelo semântico...</span>
         </div>
-
         <div class="mensagem-aviso oculto" id="avisoFallback">
-          O modelo semântico não pôde ser carregado (sem internet no primeiro uso?).
-          O jogo continua normalmente, pontuando apenas pelo tamanho das palavras.
+          O modelo semântico não pôde ser carregado. O jogo continua pontuando pelo tamanho das palavras.
         </div>
-
         <form id="formResposta" class="campo-resposta" novalidate>
           <label for="campoResposta">Suas respostas</label>
           <input type="text" id="campoResposta" placeholder="palavra1, palavra2, palavra3, palavra4, palavra5, palavra6" autocomplete="off" />
@@ -46,19 +35,15 @@
             <button type="button" id="botaoProxima" class="botao botao-secundario" disabled>Próxima pergunta</button>
           </div>
         </form>
-
         <div class="constelacao-respostas" id="constelacaoRespostas"></div>
-
         <div class="resumo-rodada oculto" id="resumoRodada"></div>
       </div>
-
-      <div class="linha-botoes" style="margin-top: 28px; border-top: 1px solid var(--border); padding-top: 20px;">
-        <a href="../../pagina3.html" class="botao botao-secundario">Escolher dificuldade</a>
-        <a href="../../ranking.html" class="botao botao-secundario">Ver ranking</a>
+      <div class="linha-botoes" style="margin-top: 24px; border-top: 3px solid var(--border); padding-top: 18px;">
+        <a href="../../pagina3.html" class="botao botao-secundario">Dificuldade</a>
+        <a href="../../ranking.html" class="botao botao-secundario">Ranking</a>
       </div>
     </div>
   </main>
-
   <script>const CAMINHO_RAIZ = "../../";</script>
   <script src="../../script.js"></script>
   <script type="module">
