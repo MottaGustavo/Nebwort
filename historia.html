@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NebWort — Modo história</title>
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style-historia-extra.css" />
 </head>
 <body>
 
@@ -44,7 +45,7 @@
 
   <script src="script.js"></script>
   <script type="module">
-    import { TEMAS_HISTORIA, TODOS_SUBS, TOTAL_SUBS } from "./capitulos-data.js";
+    import { TEMAS_HISTORIA, TOTAL_SUBS } from "./capitulos-data.js";
 
     const nickname = exigirLogin();
     if (!nickname) throw new Error("login");
