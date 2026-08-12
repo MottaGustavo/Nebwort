@@ -5,12 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NebWort — Modo história</title>
   <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="style-historia-extra.css" />
 </head>
 <body>
 
   <header class="faixa-topo">
-    <div class="marca"><span class="ponto"></span> NebWort</div>
+    <div class="marca"><span class="mark">N</span> NebWort</div>
     <div class="info-usuario">
       <span class="titulo-pill" id="tituloPill">—</span>
       <span class="pontos-pill"><span id="pontosAtuais">0</span> pts</span>
@@ -22,7 +21,7 @@
       <span class="eyebrow">Trilha</span>
       <h1>Modo história</h1>
       <p>
-        Nove temas, cinco capítulos cada (ex.: Animais por bioma).
+        Nove temas, cinco capítulos cada.
         Conclua o atual para liberar o próximo.
       </p>
 
@@ -36,7 +35,7 @@
 
       <div id="listaTemas" class="lista-temas"></div>
 
-      <div class="linha-botoes" style="margin-top: 24px; border-top: 1px solid var(--border); padding-top: 20px;">
+      <div class="linha-botoes" style="margin-top: 22px; border-top: 3px solid var(--border); padding-top: 18px;">
         <a href="pagina2.html" class="botao botao-secundario">Voltar</a>
         <a href="ranking.html" class="botao botao-secundario">Ranking</a>
       </div>
@@ -75,6 +74,8 @@
     const container = document.getElementById("listaTemas");
     if (!container) throw new Error("lista");
 
+    const emojisTema = ["🦁", "🍲", "🌿", "💼", "⚽", "💻", "💭", "🚀", "📜"];
+
     TEMAS_HISTORIA.forEach((tema, temaIdx) => {
       const bloco = document.createElement("div");
       bloco.className = "tema-bloco";
@@ -84,10 +85,12 @@
         return global < liberado;
       }).length;
 
+      const emoji = emojisTema[temaIdx] || "📘";
+
       bloco.innerHTML = `
         <div class="tema-cabecalho">
           <div>
-            <strong>${escaparHtml(tema.nome)}</strong>
+            <strong>${emoji} ${escaparHtml(tema.nome)}</strong>
             <span class="capitulo-tema">${escaparHtml(tema.descricao)}</span>
           </div>
           <span class="tema-contador">${feitosNoTema}/5</span>
@@ -109,12 +112,13 @@
           (concluido ? " capitulo-concluido" : "") +
           (atual ? " capitulo-atual" : "");
 
-        let status = "Bloqueado";
-        if (concluido) status = "Concluído";
-        else if (atual) status = "Jogar agora";
+        let status = "🔒";
+        let numLabel = String(subIdx + 1);
+        if (concluido) { status = "Feito"; numLabel = "✓"; }
+        else if (atual) status = "Jogar";
 
         item.innerHTML = `
-          <div class="capitulo-num">${subIdx + 1}</div>
+          <div class="capitulo-num">${numLabel}</div>
           <div class="capitulo-info">
             <strong>${escaparHtml(sub.nome)}</strong>
             <span class="capitulo-tema">${escaparHtml(sub.tema)}</span>
@@ -123,7 +127,6 @@
         `;
 
         if (!bloqueado) {
-          item.style.cursor = "pointer";
           item.addEventListener("click", () => {
             definirModo("historia");
             definirCapituloSessao(global);
